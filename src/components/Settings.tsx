@@ -13,6 +13,9 @@ export interface ApiKeys {
   baseUrl: string;
   pexels: string;
   pixabay: string;
+  elevenlabs: string;
+  voiceId: string;
+  useVoiceover: boolean;
 }
 
 interface SettingsProps {
@@ -102,33 +105,72 @@ export default function Settings({ keys, onSave }: SettingsProps) {
           </div>
         </div>
 
-        {/* Stock Media */}
-        <div className="space-y-6 bg-zinc-50 border border-zinc-200 p-8 rounded-[2rem] shadow-sm">
-           <div className="flex items-center gap-2 mb-4">
-             <Globe className="w-5 h-5 text-blue-600" />
-             <h3 className="font-black uppercase tracking-widest text-sm">Media Libraries</h3>
+        {/* Stock & Voice */}
+        <div className="space-y-6">
+          <div className="bg-zinc-50 border border-zinc-200 p-8 rounded-[2rem] shadow-sm space-y-6">
+            <div className="flex items-center gap-2 mb-4">
+               <Globe className="w-5 h-5 text-blue-600" />
+               <h3 className="font-black uppercase tracking-widest text-sm">Media Libraries</h3>
+            </div>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Pexels Key</label>
+                <input
+                  type="password"
+                  value={localKeys.pexels}
+                  onChange={e => setLocalKeys({ ...localKeys, pexels: e.target.value })}
+                  placeholder="Pexels Key..."
+                  className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-[10px] focus:border-blue-500 outline-none transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Pixabay Key</label>
+                <input
+                  type="password"
+                  value={localKeys.pixabay}
+                  onChange={e => setLocalKeys({ ...localKeys, pixabay: e.target.value })}
+                  placeholder="Pixabay Key..."
+                  className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-[10px] focus:border-blue-500 outline-none transition-all"
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Pexels Key</label>
-              <input
-                type="password"
-                value={localKeys.pexels}
-                onChange={e => setLocalKeys({ ...localKeys, pexels: e.target.value })}
-                placeholder="Pexels Key..."
-                className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-[10px] focus:border-blue-500 outline-none transition-all"
-              />
+          <div className="bg-zinc-50 border border-zinc-200 p-8 rounded-[2rem] shadow-sm space-y-6">
+            <div className="flex items-center gap-2 mb-4">
+               <div className="w-5 h-5 bg-blue-600 rounded flex items-center justify-center text-[8px] font-black text-white">VO</div>
+               <h3 className="font-black uppercase tracking-widest text-sm">Voiceover (ElevenLabs)</h3>
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Pixabay Key</label>
-              <input
-                type="password"
-                value={localKeys.pixabay}
-                onChange={e => setLocalKeys({ ...localKeys, pixabay: e.target.value })}
-                placeholder="Pixabay Key..."
-                className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-[10px] focus:border-blue-500 outline-none transition-all"
-              />
+            <div className="space-y-4">
+               <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-zinc-200">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Enable VO</span>
+                  <input 
+                    type="checkbox" 
+                    checked={localKeys.useVoiceover} 
+                    onChange={e => setLocalKeys({...localKeys, useVoiceover: e.target.checked})}
+                    className="w-5 h-5 accent-blue-600"
+                  />
+               </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">ElevenLabs API Key</label>
+                <input
+                  type="password"
+                  value={localKeys.elevenlabs}
+                  onChange={e => setLocalKeys({ ...localKeys, elevenlabs: e.target.value })}
+                  placeholder="sk_..."
+                  className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-[10px] focus:border-blue-500 outline-none transition-all"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Voice ID</label>
+                <input
+                  type="text"
+                  value={localKeys.voiceId}
+                  onChange={e => setLocalKeys({ ...localKeys, voiceId: e.target.value })}
+                  placeholder="e.g. 21m00Tcm4TlvDq8ikWAM"
+                  className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-[10px] focus:border-blue-500 outline-none transition-all"
+                />
+              </div>
             </div>
           </div>
         </div>

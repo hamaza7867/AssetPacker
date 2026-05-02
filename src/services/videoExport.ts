@@ -1,23 +1,45 @@
 "use client";
 
 import { SelectedMedia, ScriptResponse } from "../types";
+import { ApiKeys } from "../components/Settings";
+import { voiceService } from "./voice";
 
 export const videoExportService = {
-  async exportSequence(selection: SelectedMedia[], script: ScriptResponse, onProgress: (p: number) => void): Promise<Blob> {
+  async exportSequence(selection: SelectedMedia[], script: ScriptResponse, apiKeys: ApiKeys, onProgress: (p: number) => void): Promise<Blob> {
     const RecordRTC = (await import('recordrtc')).default;
     
+    // 1. Generate Voiceovers if enabled
+    const audioBlobs: Record<number, Blob> = {};
+    if (apiKeys.useVoiceover && apiKeys.elevenlabs) {
+       for (let i = 0; i < script.scenes.length; i++) {
+         const scene = script.scenes[i];
+         onProgress((i / script.scenes.length) * 10);
+         try {
+           const blob = await voiceService.generateSpeech(scene.narration, apiKeys.elevenlabs, apiKeys.voiceId);
+           audioBlobs[scene.id] = blob;
+         } catch (e) {
+           console.error(`Voiceover failed for scene ${i}:`, e);
+         }
+       }
+    }
+
     const canvas = document.createElement('canvas');
     canvas.width = 1920;
     canvas.height = 1080;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) throw new Error("Canvas context not available");
 
-    const stream = (canvas as any).captureStream(30);
-
-    const recorder = new RecordRTC(stream, {
+    const canvasStream = (canvas as any).captureStream(30);
+    
+    // Setup Audio Mixer
+    const audioContext = new AudioContext();
+    const dest = audioContext.createMediaStreamDestination();
+    
+    // IMPORTANT: Mix Canvas Stream + Audio Stream
+    const recorder = new RecordRTC([canvasStream, dest.stream], {
       type: 'video',
       mimeType: 'video/webm;codecs=vp9',
-      bitsPerSecond: 12800000, 
+      bitsPerSecond: 12800000,
     });
 
     recorder.startRecording();
@@ -27,7 +49,7 @@ export const videoExportService = {
       const sel = selection.find(s => s.sceneId === scene.id);
       if (!sel) continue;
 
-      onProgress(((i + 1) / script.scenes.length) * 100);
+      onProgress(10 + ((i + 1) / script.scenes.length) * 90);
 
       let media: HTMLImageElement | HTMLVideoElement;
       if (sel.asset.type === 'video') {
@@ -40,30 +62,50 @@ export const videoExportService = {
         media = video;
         await new Promise((resolve) => {
           video.onloadeddata = resolve;
+          video.onerror = resolve;
           video.load();
         });
-        await video.play();
+        await video.play().catch(e => console.error("Play failed", e));
       } else {
         const img = new Image();
         img.src = sel.asset.url;
         img.crossOrigin = "anonymous";
         media = img;
-        await new Promise(r => img.onload = r);
+        await new Promise(r => {
+          img.onload = r;
+          img.onerror = r;
+        });
+      }
+
+      let audioDuration = 5000;
+      if (audioBlobs[scene.id]) {
+        const audioUrl = URL.createObjectURL(audioBlobs[scene.id]);
+        const audio = new Audio(audioUrl);
+        const source = audioContext.createMediaElementSource(audio);
+        source.connect(dest);
+        source.connect(audioContext.destination);
+        
+        await new Promise(r => {
+          audio.onloadedmetadata = r;
+          audio.onerror = r;
+        });
+        audioDuration = (audio.duration * 1000) + 200;
+        audio.play();
       }
 
       const startTime = Date.now();
-      const sceneDuration = 5000;
-
-      while (Date.now() - startTime < sceneDuration) {
+      while (Date.now() - startTime < audioDuration) {
         ctx.fillStyle = '#000';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        const scale = Math.max(canvas.width / media.width, canvas.height / media.height);
-        const w = media.width * scale;
-        const h = media.height * scale;
-        const x = (canvas.width - w) / 2;
-        const y = (canvas.height - h) / 2;
-        ctx.drawImage(media, x, y, w, h);
+        if (media.width > 0) {
+          const scale = Math.max(canvas.width / media.width, canvas.height / media.height);
+          const w = media.width * scale;
+          const h = media.height * scale;
+          const x = (canvas.width - w) / 2;
+          const y = (canvas.height - h) / 2;
+          ctx.drawImage(media, x, y, w, h);
+        }
 
         const text = scene.narration;
         ctx.font = 'bold 50px Inter, sans-serif';
@@ -86,10 +128,9 @@ export const videoExportService = {
 
         const lineHeight = 70;
         const totalHeight = lines.length * lineHeight;
-        const bgPadding = 40;
         
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        this.roundRect(ctx, 200, canvas.height - totalHeight - 150, canvas.width - 400, totalHeight + bgPadding, 30);
+        this.roundRect(ctx, 200, canvas.height - totalHeight - 150, canvas.width - 400, totalHeight + 40, 30);
         ctx.fill();
 
         ctx.fillStyle = '#fff';

@@ -18,7 +18,10 @@ export default function Home() {
       model: '',
       baseUrl: '',
       pexels: 'B3HNHOqA8U3QU0JTFasjSVlssIUJBIgIPu1cTLuq2rzQ9XHasVvtfHgH', 
-      pixabay: '51036990-45a2a759750e0c9f66bc483d1' 
+      pixabay: '51036990-45a2a759750e0c9f66bc483d1',
+      elevenlabs: '',
+      voiceId: 'cgSgSjLCjtvcBway7TXK', // Default: Bella
+      useVoiceover: false
     };
 
     if (typeof window !== 'undefined') {

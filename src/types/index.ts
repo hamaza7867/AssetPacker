@@ -17,6 +17,8 @@ export interface StockAsset {
   thumbnail: string;
   type: 'image' | 'video';
   provider: 'pexels' | 'pixabay';
+  description?: string;
+  tags?: string[];
 }
 
 export interface SelectedMedia {

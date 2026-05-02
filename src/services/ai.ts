@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { ScriptResponse } from "../types";
+import { ScriptResponse, StockAsset } from "../types";
 import { ApiKeys } from "../components/Settings";
 
 export const aiService = {
@@ -20,29 +20,51 @@ export const aiService = {
     }`;
 
     const userPrompt = `${systemPrompt}\n\nInput: ${prompt}`;
+    return this.executeLLM(userPrompt, config);
+  },
 
-    // 1. Google Gemini
+  async rankMedia(sceneContext: { narration: string, query: string }, candidates: StockAsset[], config: ApiKeys): Promise<number> {
+    if (candidates.length <= 1) return 0;
+
+    const list = candidates.slice(0, 8).map((c, i) => 
+      `[${i}] Type: ${c.type}, Desc: ${c.description}, Tags: ${c.tags?.join(', ')}`
+    ).join('\n');
+
+    const prompt = `As a film director, select the BEST stock media asset for this scene.
+    Scene Narration: "${sceneContext.narration}"
+    Target Concept: "${sceneContext.query}"
+
+    Candidate Assets:
+    ${list}
+
+    Return ONLY the index number of the best asset. No explanation.`;
+
+    try {
+      const result = await this.executeLLM(prompt, config, true);
+      const index = parseInt(typeof result === 'string' ? result : (result as any).index);
+      return isNaN(index) ? 0 : Math.min(index, candidates.length - 1);
+    } catch (e) {
+      return 0;
+    }
+  },
+
+  async executeLLM(prompt: string, config: ApiKeys, raw: boolean = false): Promise<any> {
     if (config.provider === 'gemini') {
-      if (!config.gemini) return this.getMockScript(prompt);
+      if (!config.gemini) return raw ? "0" : this.getMockScript("");
       
       try {
         const genAI = new GoogleGenAI({ apiKey: config.gemini });
         const response = await genAI.models.generateContent({
           model: "gemini-1.5-flash",
-          contents: [{ role: "user", parts: [{ text: userPrompt }] }]
+          contents: [{ role: "user", parts: [{ text: prompt }] }]
         });
-        
         const text = (typeof response.text === 'function' ? (response as any).text() : response.text) || "";
-        if (!text) throw new Error("Gemini returned an empty response");
-        
-        return this.parseResponse(text);
+        return raw ? text.trim() : this.parseResponse(text);
       } catch (e: any) {
-        console.error("Gemini call failed", e);
         throw new Error(e.message || "Failed to generate script with Gemini");
       }
     }
 
-    // 2. OpenAI / Groq / Custom (OpenAI-Compatible)
     const baseUrl = config.provider === 'groq' 
       ? 'https://api.groq.com/openai/v1' 
       : config.provider === 'openai' 
@@ -50,8 +72,6 @@ export const aiService = {
         : config.baseUrl || 'https://api.openai.com/v1';
 
     const apiKey = config[config.provider];
-    if (!apiKey) return this.getMockScript(prompt);
-
     const model = config.model || (config.provider === 'groq' ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini');
 
     try {
@@ -64,36 +84,18 @@ export const aiService = {
         body: JSON.stringify({
           model: model,
           messages: [
-            { role: 'system', content: 'You are a professional video director. Return ONLY raw JSON.' },
-            { role: 'user', content: userPrompt }
+            { role: 'system', content: 'You are a professional video director. Return ONLY the requested content.' },
+            { role: 'user', content: prompt }
           ],
-          response_format: { type: "json_object" }
+          response_format: raw ? undefined : { type: "json_object" }
         })
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage = `HTTP ${response.status}`;
-        try {
-          const errorJson = JSON.parse(errorText);
-          errorMessage = errorJson.error?.message || errorMessage;
-        } catch (e) {
-          errorMessage = errorText || errorMessage;
-        }
-        throw new Error(errorMessage);
-      }
-
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
-      
-      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        throw new Error("Invalid response structure from LLM provider");
-      }
-
       const content = data.choices[0].message.content;
-      return this.parseResponse(content);
+      return raw ? content.trim() : this.parseResponse(content);
     } catch (e: any) {
-      console.error("LLM API Call failed", e);
-      // Propagate the actual error message instead of letting it fail silently or with a generic message
       throw new Error(e.message || "Connection failed");
     }
   },
@@ -103,7 +105,6 @@ export const aiService = {
       const cleanJson = text.replace(/```json/g, '').replace(/```/g, '').trim();
       return JSON.parse(cleanJson);
     } catch (e) {
-      console.error("Failed to parse AI response", text);
       throw new Error("Invalid AI response format");
     }
   },
