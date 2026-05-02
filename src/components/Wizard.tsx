@@ -85,7 +85,7 @@ export default function Wizard({ apiKeys }: WizardProps) {
 
     setIsLoading(true);
     try {
-      const results = await stockService.search(query, apiKeys.pexels, apiKeys.pixabay);
+      const results = await stockService.search(query, apiKeys.pexels, apiKeys.pixabay, apiKeys.mediaPreference);
       setSearchResults(prev => ({ ...prev, [scene.id]: results }));
       
       // NEW: Intelligent AI Selection

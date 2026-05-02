@@ -16,6 +16,7 @@ export interface ApiKeys {
   elevenlabs: string;
   voiceId: string;
   useVoiceover: boolean;
+  mediaPreference: 'image' | 'video' | 'both';
 }
 
 interface SettingsProps {
@@ -132,6 +133,18 @@ export default function Settings({ keys, onSave }: SettingsProps) {
                   placeholder="Pixabay Key..."
                   className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-[10px] focus:border-blue-500 outline-none transition-all"
                 />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Media Preference</label>
+                <select
+                  value={localKeys.mediaPreference}
+                  onChange={e => setLocalKeys({ ...localKeys, mediaPreference: e.target.value as any })}
+                  className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-[10px] font-bold focus:border-blue-500 outline-none transition-all cursor-pointer"
+                >
+                  <option value="both">All Assets (Images & Videos)</option>
+                  <option value="video">Cinematic Videos Only</option>
+                  <option value="image">High-Quality Images Only</option>
+                </select>
               </div>
             </div>
           </div>

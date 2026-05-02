@@ -1,7 +1,7 @@
 import { StockAsset } from "../types";
 
 export const stockService = {
-  async search(query: string, pexelsKey: string, pixabayKey: string): Promise<StockAsset[]> {
+  async search(query: string, pexelsKey: string, pixabayKey: string, preference: 'image' | 'video' | 'both' = 'both'): Promise<StockAsset[]> {
     const pexelsUrl = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=15`;
     const pexelsVideoUrl = `https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=15`;
     const pixabayUrl = `https://pixabay.com/api/?key=${pixabayKey}&q=${encodeURIComponent(query)}&image_type=all&per_page=15`;
@@ -9,15 +9,25 @@ export const stockService = {
     try {
       const promises: Promise<any>[] = [];
       
+      // Conditionally fetch based on preference
       if (pexelsKey) {
-        promises.push(fetch(pexelsUrl, { headers: { Authorization: pexelsKey } }).then(r => r.json()));
-        promises.push(fetch(pexelsVideoUrl, { headers: { Authorization: pexelsKey } }).then(r => r.json()));
+        if (preference === 'both' || preference === 'image') {
+          promises.push(fetch(pexelsUrl, { headers: { Authorization: pexelsKey } }).then(r => r.json()));
+        } else {
+          promises.push(Promise.resolve({ photos: [] }));
+        }
+
+        if (preference === 'both' || preference === 'video') {
+          promises.push(fetch(pexelsVideoUrl, { headers: { Authorization: pexelsKey } }).then(r => r.json()));
+        } else {
+          promises.push(Promise.resolve({ videos: [] }));
+        }
       } else {
         promises.push(Promise.resolve({ photos: [] }));
         promises.push(Promise.resolve({ videos: [] }));
       }
 
-      if (pixabayKey) {
+      if (pixabayKey && (preference === 'both' || preference === 'image')) {
         promises.push(fetch(pixabayUrl).then(r => r.json()));
       } else {
         promises.push(Promise.resolve({ hits: [] }));
@@ -56,12 +66,19 @@ export const stockService = {
       }));
 
       const results: StockAsset[] = [];
-      const maxLength = Math.max(pexAssets.length, pexVidAssets.length, pixAssets.length);
       
-      for (let i = 0; i < maxLength; i++) {
-        if (pexVidAssets[i]) results.push(pexVidAssets[i]);
-        if (pexAssets[i]) results.push(pexAssets[i]);
-        if (pixAssets[i]) results.push(pixAssets[i]);
+      if (preference === 'video') {
+        results.push(...pexVidAssets);
+      } else if (preference === 'image') {
+        results.push(...pexAssets, ...pixAssets);
+      } else {
+        // Interleave for variety
+        const maxLength = Math.max(pexAssets.length, pexVidAssets.length, pixAssets.length);
+        for (let i = 0; i < maxLength; i++) {
+          if (pexVidAssets[i]) results.push(pexVidAssets[i]);
+          if (pexAssets[i]) results.push(pexAssets[i]);
+          if (pixAssets[i]) results.push(pixAssets[i]);
+        }
       }
 
       return results;

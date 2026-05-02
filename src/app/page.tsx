@@ -21,7 +21,8 @@ export default function Home() {
       pixabay: '51036990-45a2a759750e0c9f66bc483d1',
       elevenlabs: '',
       voiceId: 'cgSgSjLCjtvcBway7TXK', // Default: Bella
-      useVoiceover: false
+      useVoiceover: false,
+      mediaPreference: 'both'
     };
 
     if (typeof window !== 'undefined') {
