@@ -12,7 +12,6 @@ export const videoExportService = {
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error("Canvas context not available");
 
-    // Capture stream from canvas at 30 FPS
     const stream = (canvas as any).captureStream(30);
 
     const recorder = new RecordRTC(stream, {
@@ -32,22 +31,24 @@ export const videoExportService = {
 
       let media: HTMLImageElement | HTMLVideoElement;
       if (sel.asset.type === 'video') {
-        media = document.createElement('video');
-        media.src = sel.asset.url;
-        media.muted = true;
-        media.crossOrigin = "anonymous";
-        media.setAttribute('webkit-playsinline', 'true');
-        media.setAttribute('playsinline', 'true');
+        const video = document.createElement('video');
+        video.src = sel.asset.url;
+        video.muted = true;
+        video.crossOrigin = "anonymous";
+        video.setAttribute('webkit-playsinline', 'true');
+        video.setAttribute('playsinline', 'true');
+        media = video;
         await new Promise((resolve) => {
-          media.onloadeddata = resolve;
-          media.load();
+          video.onloadeddata = resolve;
+          video.load();
         });
-        await (media as HTMLVideoElement).play();
+        await video.play();
       } else {
-        media = new Image();
-        media.src = sel.asset.url;
-        media.crossOrigin = "anonymous";
-        await new Promise(r => media.onload = r);
+        const img = new Image();
+        img.src = sel.asset.url;
+        img.crossOrigin = "anonymous";
+        media = img;
+        await new Promise(r => img.onload = r);
       }
 
       const startTime = Date.now();
