@@ -160,17 +160,17 @@ export default function Wizard({ apiKeys }: WizardProps) {
                 <Zap className="w-3.5 h-3.5 fill-current" />
                 <span className="text-[10px] font-black uppercase tracking-widest">Enterprise Video Engine</span>
              </div>
-            <h1 className="text-6xl font-black uppercase tracking-tighter leading-[0.9]">Infinite Asset<br/><span className="text-blue-600 italic">Packer</span></h1>
-            <p className="text-zinc-500 font-medium mt-6 text-lg">Input a script of any length. We'll handle the curation.</p>
+            <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-[0.9]">Infinite Asset<br/><span className="text-blue-600 italic">Packer</span></h1>
+            <p className="text-zinc-500 font-medium mt-4 md:mt-6 text-base md:text-lg">Input a script of any length. We'll handle the curation.</p>
           </div>
 
-          <div className="space-y-6 bg-zinc-50 border border-zinc-200 p-10 rounded-[3rem] max-w-4xl mx-auto shadow-2xl shadow-zinc-200/50">
+          <div className="space-y-6 bg-zinc-50 border border-zinc-200 p-6 md:p-10 rounded-[2.5rem] md:rounded-[3rem] max-w-4xl mx-auto shadow-2xl shadow-zinc-200/50">
             <div className="space-y-2">
               <div className="flex justify-between items-end mb-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Production Script</label>
                 {!apiKeys[apiKeys.provider] && (
                    <span className="text-[8px] font-bold text-orange-500 uppercase flex items-center gap-1 bg-orange-50 px-2 py-1 rounded-full border border-orange-100">
-                     <Info className="w-2.5 h-2.5" /> Mock Mode Active
+                     <Info className="w-2.5 h-2.5" /> Mock Mode
                    </span>
                 )}
               </div>
@@ -178,17 +178,17 @@ export default function Wizard({ apiKeys }: WizardProps) {
                 value={prompt}
                 onChange={e => setPrompt(e.target.value)}
                 placeholder="Paste your 200+ scene script here... The AI will automatically slice it into beats."
-                className="w-full h-64 bg-white border border-zinc-200 rounded-3xl px-8 py-6 text-sm focus:border-blue-500 outline-none transition-all resize-none shadow-inner"
+                className="w-full h-48 md:h-64 bg-white border border-zinc-200 rounded-2xl md:rounded-3xl px-6 md:px-8 py-4 md:py-6 text-sm focus:border-blue-500 outline-none transition-all resize-none shadow-inner"
               />
             </div>
 
             <button
               onClick={handleGenerateScript}
               disabled={isLoading || !prompt}
-              className="w-full py-6 bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-200 text-white rounded-[2rem] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-4 transition-all shadow-2xl shadow-blue-500/30 hover:scale-[1.02] active:scale-95"
+              className="w-full py-5 md:py-6 bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-200 text-white rounded-[1.5rem] md:rounded-[2rem] font-black uppercase tracking-[0.2em] flex items-center justify-center gap-4 transition-all shadow-2xl shadow-blue-500/30 hover:scale-[1.02] active:scale-95 text-xs md:text-sm"
             >
-              {isLoading ? <Loader2 className="animate-spin w-6 h-6" /> : <Wand2 className="w-6 h-6" />}
-              Initialize Scene Extraction
+              {isLoading ? <Loader2 className="animate-spin w-5 h-5" /> : <Wand2 className="w-5 h-5" />}
+              Initialize Extraction
             </button>
           </div>
         </div>
@@ -345,55 +345,55 @@ export default function Wizard({ apiKeys }: WizardProps) {
 
       {/* Step 4: Finalize */}
       {step === 4 && script && (
-        <div className="space-y-12 animate-in fade-in zoom-in duration-700 py-12">
-          <div className="text-center space-y-6">
-             <h2 className="text-6xl font-black uppercase tracking-tighter leading-none">Production <span className="text-blue-600">Review</span></h2>
-             <p className="text-zinc-500 font-medium text-lg max-w-xl mx-auto">Preview your sequence and export the final masterpiece.</p>
+        <div className="space-y-8 md:space-y-12 animate-in fade-in zoom-in duration-700 py-6 md:py-12">
+          <div className="text-center space-y-4 md:space-y-6">
+             <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter leading-none">Production <span className="text-blue-600">Review</span></h2>
+             <p className="text-zinc-500 font-medium text-sm md:text-lg max-w-xl mx-auto px-4">Preview your sequence and export the final masterpiece.</p>
           </div>
 
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-4xl mx-auto px-2 md:px-0">
             <VideoPreview selection={selection} script={script} />
           </div>
 
-          <div className="flex flex-col items-center gap-8 bg-zinc-50 p-12 rounded-[4rem] border border-zinc-200">
+          <div className="flex flex-col items-center gap-6 md:gap-8 bg-zinc-50 p-6 md:p-12 rounded-[2.5rem] md:rounded-[4rem] border border-zinc-200">
             {exportProgress !== null ? (
                <div className="w-full max-w-md space-y-4 text-center">
-                  <div className="flex justify-between items-end">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">Rendering Production...</span>
+                  <div className="flex justify-between items-end px-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">Rendering...</span>
                     <span className="text-[10px] font-black uppercase tracking-widest text-zinc-400">{Math.round(exportProgress)}%</span>
                   </div>
-                  <div className="h-2 bg-zinc-200 rounded-full overflow-hidden">
+                  <div className="h-2 bg-zinc-200 rounded-full overflow-hidden mx-2">
                     <div className="h-full bg-blue-600 transition-all duration-300" style={{ width: `${exportProgress}%` }} />
                   </div>
-                  <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Please keep this tab active during render</p>
+                  <p className="text-[8px] font-black text-zinc-400 uppercase tracking-widest">Keep tab active</p>
                </div>
             ) : (
-              <div className="flex flex-col md:flex-row gap-6 w-full justify-center">
+              <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full justify-center">
                  <button
                   onClick={() => setStep(3)}
-                  className="px-10 py-6 bg-white border border-zinc-200 text-zinc-900 rounded-[2rem] font-black uppercase tracking-widest transition-all hover:bg-zinc-50"
+                  className="w-full md:w-auto px-8 py-4 md:py-6 bg-white border border-zinc-200 text-zinc-900 rounded-[1.5rem] md:rounded-[2rem] font-black uppercase tracking-widest transition-all hover:bg-zinc-50 text-xs md:text-sm"
                 >
-                  Edit Scenes
+                  Edit
                 </button>
                 <button
                   onClick={handleDownload}
                   disabled={isLoading}
-                  className="px-10 py-6 bg-zinc-900 text-white rounded-[2rem] font-black uppercase tracking-widest flex items-center justify-center gap-4 transition-all hover:bg-zinc-800 shadow-xl"
+                  className="w-full md:w-auto px-8 py-4 md:py-6 bg-zinc-900 text-white rounded-[1.5rem] md:rounded-[2rem] font-black uppercase tracking-widest flex items-center justify-center gap-3 md:gap-4 transition-all hover:bg-zinc-800 shadow-xl text-xs md:text-sm"
                 >
-                  <LayoutPanelLeft className="w-5 h-5" />
-                  Media Bundle (ZIP)
+                  <LayoutPanelLeft className="w-4 h-4 md:w-5 md:h-5" />
+                  Assets (ZIP)
                 </button>
                 <button
                   onClick={handleExportVideo}
                   disabled={isLoading}
-                  className="px-12 py-6 bg-blue-600 text-white rounded-[2.5rem] font-black uppercase tracking-widest flex items-center justify-center gap-6 transition-all hover:bg-blue-500 shadow-[0_20px_50px_rgba(37,99,235,0.3)] hover:scale-105 active:scale-95"
+                  className="w-full md:w-auto px-10 py-5 md:py-6 bg-blue-600 text-white rounded-[2rem] md:rounded-[2.5rem] font-black uppercase tracking-widest flex items-center justify-center gap-4 md:gap-6 transition-all hover:bg-blue-500 shadow-xl hover:scale-105 text-xs md:text-sm"
                 >
-                  <Download className="w-6 h-6" />
-                  Export Full Video
+                  <Download className="w-5 h-5 md:w-6 md:h-6" />
+                  Export Video
                 </button>
               </div>
             )}
-            <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-4">Organized Assets for Premiere, DaVinci, and Browser Preview</p>
+            <p className="hidden md:block text-[10px] font-black text-zinc-400 uppercase tracking-widest mt-4 text-center">Organized for Premiere, DaVinci, and Browser Preview</p>
           </div>
         </div>
       )}
